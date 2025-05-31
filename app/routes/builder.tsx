@@ -18,7 +18,7 @@ const predefinedTemplates = [
     name: "Contact Us",
     fields: [
       { id: uuidv4(), type: "text", label: "Name", required: true },
-      { id: uuidv4(), type: "email", label: "Email", required: true, pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$" },
+      { id: uuidv4(), type: "text", label: "Email", required: true},
       { id: uuidv4(), type: "textarea", label: "Message", required: true, minLength: 10 },
     ],
   },

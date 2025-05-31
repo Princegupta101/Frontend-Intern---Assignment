@@ -6,18 +6,15 @@ import { FieldType } from "~/utils/types";
 import FieldConfig from "./FieldConfig";
 import FormPreview from "./FormPreview";
 
-// Define template type
 interface Template {
   name: string;
   fields: Array<{ id: string; type: FieldType; label: string; [key: string]: any }>;
 }
 
-// Define component props
 interface FormBuilderProps {
   templates: Template[];
 }
 
-// Dynamically import react-beautiful-dnd components to avoid SSR
 const DragDropContext = lazy(() =>
   import("react-beautiful-dnd").then((mod) => ({ default: mod.DragDropContext }))
 );

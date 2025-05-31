@@ -1,16 +1,11 @@
-// Component to display a progress indicator for multi-step forms
 import { useFormStore } from "~/store/formStore";
 
 export default function ProgressIndicator() {
   const { fields, currentStep, setCurrentStep } = useFormStore();
 
-  // Calculate total steps based on unique step numbers in fields
   const steps = Array.from(new Set(fields.map((f) => f.step || 1))).length;
 
-  // Handle step navigation with validation check
   const handleStepClick = (step: number) => {
-    // Only navigate if the step is valid (e.g., no validation errors in prior steps)
-    // For simplicity, we allow clicking any step; add validation logic if needed
     setCurrentStep(step);
   };
 

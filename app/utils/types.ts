@@ -1,4 +1,3 @@
-// Type definitions for the form builder
 export type FieldType = "text" | "textarea" | "dropdown" | "checkbox" | "date";
 
 export interface Field {

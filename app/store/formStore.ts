@@ -86,6 +86,11 @@ export const useFormStore = create<FormState>((set, get) => ({
       return { fields: previous || state.fields, history };
     }),
   redo: () => {
-    // Redo logic can be implemented if needed
+    set((state) => {
+      const history = [...state.history];
+      if (history.length === 0) return state;
+      const next = history.pop();
+      return { fields: next || state.fields, history };
+    });
   },
 }));
