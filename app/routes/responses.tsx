@@ -15,7 +15,6 @@ interface LoaderData {
 }
 
 export async function loader({}: LoaderFunctionArgs) {
-  // Avoid localStorage in loader to prevent SSR issues
   return json<LoaderData>({ initialForms: [] });
 }
 
@@ -26,20 +25,30 @@ export default function FormList() {
   useEffect(() => {
     try {
       const formsData = JSON.parse(localStorage.getItem("forms") || "{}");
+      const responsesData = JSON.parse(localStorage.getItem("responses") || "{}");
+
+      // Group responses by formId
+      const responseCounts: Record<string, number> = {};
+      Object.keys(responsesData).forEach((formId) => {
+        const formResponses = responsesData[formId] || [];
+        responseCounts[formId] = formResponses.length;
+      });
+
       const formSummaries: FormSummary[] = Object.keys(formsData).map((formId) => {
-        const responses = JSON.parse(localStorage.getItem(`responses_${formId}`) || "[]");
         const formData = formsData[formId];
         return {
           formId,
           fieldCount: formData?.fields?.length || 0,
-          responseCount: Array.isArray(responses) ? responses.length : 0,
+          responseCount: responseCounts[formId] || 0,
           fields: formData?.fields || [],
         };
-      });
-      console.log("FormList: Loaded forms from localStorage", {
+      }).reverse(); // Newest forms first
+
+      console.log("FormList: Loaded forms and responses", {
         formSummaries,
         totalForms: formSummaries.length,
         fullForms: formsData,
+        responseCounts,
       });
       setForms(formSummaries);
     } catch (error) {
@@ -71,7 +80,7 @@ export default function FormList() {
           <p className="text-gray-600 dark:text-gray-400">No forms created yet. Create a form in the builder to see it here.</p>
         ) : (
           <div className="space-y-4">
-            {[...forms].reverse().map((form) => (
+            {forms.map((form) => (
               <div
                 key={form.formId}
                 className="p-4 bg-white dark:bg-gray-800 rounded shadow flex justify-between items-center"
@@ -96,11 +105,11 @@ export default function FormList() {
                     Open Form
                   </button>
                   <Link
-                    to={`/responses/${form.formId}`}
+                    to={`/response/${form.formId}`}
                     className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
                     aria-label={`View responses for form ${form.formId}`}
                   >
-                    View Responses
+                    Responses
                   </Link>
                 </div>
               </div>

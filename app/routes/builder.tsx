@@ -164,15 +164,6 @@ export default function Builder() {
             >
               Save & Open
             </button>
-            {formId && (
-              <Link
-                to={`/responses/${formId}`}
-                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-                aria-label="View responses for current form"
-              >
-                View Current Responses
-              </Link>
-            )}
             <Link
               to="/responses"
               className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
