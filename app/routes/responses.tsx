@@ -96,7 +96,7 @@ export default function FormList() {
                     Fields: {form.fields.map((f) => f.label).join(", ")}
                   </p>
                 </div>
-                <div className="space-x-2">
+                <div className="  flex flex-col gap-2  md:flex-row md:space-x-2">
                   <button
                     onClick={() => handleOpenForm(form.formId)}
                     className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
