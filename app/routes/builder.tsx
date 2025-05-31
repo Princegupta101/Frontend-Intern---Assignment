@@ -9,11 +9,31 @@ import ThemeToggle from "~/components/ThemeToggle";
 import { useFormStore } from "~/store/formStore";
 
 interface LoaderData {
-  templates: Array<{ name: string; fields: Array<any> }>;
+  templates: Array<{ id: string; name: string; fields: Array<any> }>;
 }
 
+const predefinedTemplates = [
+  {
+    id: "contact-us",
+    name: "Contact Us",
+    fields: [
+      { id: uuidv4(), type: "text", label: "Name", required: true },
+      { id: uuidv4(), type: "email", label: "Email", required: true, pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$" },
+      { id: uuidv4(), type: "textarea", label: "Message", required: true, minLength: 10 },
+    ],
+  },
+  {
+    id: "feedback",
+    name: "Feedback Form",
+    fields: [
+      { id: uuidv4(), type: "dropdown", label: "Rating", options: ["1", "2", "3", "4", "5"], required: true },
+      { id: uuidv4(), type: "textarea", label: "Comments", required: false },
+    ],
+  },
+];
+
 export async function loader() {
-  return json<LoaderData>({ templates: [] });
+  return json<LoaderData>({ templates: predefinedTemplates });
 }
 
 export async function action({ request }: LoaderFunctionArgs) {
@@ -43,9 +63,8 @@ export default function Builder() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedTemplates = JSON.parse(localStorage.getItem("formTemplates") || "[]");
-      setTemplates(storedTemplates);
+      setTemplates([...predefinedTemplates, ...storedTemplates]);
 
-      // Check for existing formId in URL (e.g., /builder?formId=xyz)
       const urlParams = new URLSearchParams(window.location.search);
       const existingFormId = urlParams.get("formId");
       if (existingFormId) {
@@ -56,6 +75,11 @@ export default function Builder() {
           setFormId(existingFormId);
         }
       }
+
+      console.log("Builder: Computed styles", {
+        bodyBackground: window.getComputedStyle(document.body).backgroundColor,
+        containerBackground: window.getComputedStyle(document.querySelector(".min-h-screen") || document.body).backgroundColor,
+      });
     }
   }, [loadTemplate]);
 
@@ -63,6 +87,7 @@ export default function Builder() {
     if (typeof window !== "undefined") {
       const saveInterval = setInterval(() => {
         saveForm();
+        console.log("Builder: Auto-saved form", { fields });
       }, 5000);
       return () => clearInterval(saveInterval);
     }
@@ -79,14 +104,31 @@ export default function Builder() {
       const newFormId = formId || uuidv4();
       forms[newFormId] = { fields };
       localStorage.setItem("forms", JSON.stringify(forms));
-      console.log("Saved form:", newFormId, forms[newFormId]); // Debug log
+      console.log("Builder: Saved form", { formId: newFormId, form: forms[newFormId] });
 
       submit(
         { form: JSON.stringify({ fields }), formId: newFormId },
         { method: "post" }
       );
       setFormId(newFormId);
-      alert(`Form saved! Shareable link: /form/${newFormId}`);
+
+      const shareableLink = `/form/${newFormId}`;
+      console.log("Builder: Opening shareable link in new tab", shareableLink);
+      window.open(shareableLink, "_blank");
+    }
+  };
+
+  const handleSaveTemplate = () => {
+    if (typeof window !== "undefined" && fields.length > 0) {
+      const templateName = prompt("Enter template name:");
+      if (templateName) {
+        const newTemplate = { id: uuidv4(), name: templateName, fields };
+        const storedTemplates = JSON.parse(localStorage.getItem("formTemplates") || "[]");
+        storedTemplates.push(newTemplate);
+        localStorage.setItem("formTemplates", JSON.stringify(storedTemplates));
+        setTemplates([...predefinedTemplates, ...storedTemplates]);
+        console.log("Builder: Saved template", { templateName, fields });
+      }
     }
   };
 
@@ -100,9 +142,9 @@ export default function Builder() {
             <button
               onClick={handleSave}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              aria-label="Save and share form"
+              aria-label="Save and open form in new tab"
             >
-              Save & Share
+              Save & Open
             </button>
           </div>
         </div>
