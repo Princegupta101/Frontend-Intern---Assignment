@@ -22,9 +22,8 @@ A dynamic form builder application built with React Remix, Tailwind CSS, and Zus
 5. Start production server: `npm run start`
 
 ## Deployment
-- Deployed on [Vercel/Netlify/Your Preferred Platform]
-- Live URL: [Insert live URL here]
-- Video walkthrough: [Insert video link here]
+- Live URL: https://frontend-intern-assignment-tau.vercel.app/
+- Video walkthrough: https://youtu.be/ZGzXQvjCr78
 
 ## Usage
 1. Navigate to `/builder` to create a new form
