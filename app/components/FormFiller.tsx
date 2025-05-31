@@ -28,7 +28,7 @@ export default function FormFiller({ form }: Props) {
 
   useEffect(() => {
     if (form) {
-      console.log("Form loaded:", form);
+      console.log("FormFiller: Form loaded", form);
       const initialData = form.fields.reduce((acc, field) => ({
         ...acc,
         [field.id]: "",
@@ -67,6 +67,10 @@ export default function FormFiller({ form }: Props) {
 
     submit({ ...submission }, { method: "post", action: `/form/${formId}` });
     alert("Form submitted!");
+    setFormData(form.fields.reduce((acc, field) => ({
+      ...acc,
+      [field.id]: "",
+    }), {})); // Reset form after submission
   };
 
   if (!form) {
@@ -77,34 +81,68 @@ export default function FormFiller({ form }: Props) {
     <form onSubmit={handleSubmit} className="space-y-4">
       {form.fields.map((field) => (
         <div key={field.id} className="space-y-1">
-          <label className="block text-sm font-medium">
+          <label htmlFor={field.id} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             {field.label}
             {field.required && <span className="text-red-500">*</span>}
           </label>
           {field.type === "text" && (
             <input
+              id={field.id}
               type="text"
               value={formData[field.id] || ""}
               onChange={(e) => handleChange(field.id, e.target.value)}
               placeholder={field.placeholder}
-              className="w-full p-2 border rounded dark:bg-gray-700"
+              className="w-full p-2 border rounded bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+              aria-describedby={field.helpText ? `${field.id}-help` : undefined}
+              required={field.required}
             />
           )}
           {field.type === "textarea" && (
             <textarea
+              id={field.id}
               value={formData[field.id] || ""}
               onChange={(e) => handleChange(field.id, e.target.value)}
               placeholder={field.placeholder}
-              className="w-full p-2 border rounded dark:bg-gray-700"
+              className="w-full p-2 border rounded bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+              aria-describedby={field.helpText ? `${field.id}-help` : undefined}
+              required={field.required}
             />
           )}
-          {field.helpText && <p className="text-sm text-gray-500">{field.helpText}</p>}
-          {errors[field.id] && <p className="text-red-500 text-sm">{errors[field.id]}</p>}
+          {field.type === "dropdown" && (
+            <select
+              id={field.id}
+              value={formData[field.id] || ""}
+              onChange={(e) => handleChange(field.id, e.target.value)}
+              className="w-full p-2 border rounded bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+              aria-describedby={field.helpText ? `${field.id}-help` : undefined}
+              required={field.required}
+            >
+              <option value="" disabled>
+                Select an option
+              </option>
+              {field.options?.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          )}
+          {field.helpText && (
+            <p id={`${field.id}-help`} className="text-sm text-gray-500 dark:text-gray-400">
+              {field.helpText}
+            </p>
+          )}
+          {errors[field.id] && (
+            <p className="text-red-500 text-sm" role="alert">
+              {errors[field.id]}
+            </p>
+          )}
         </div>
       ))}
       <button
         type="submit"
         className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        aria-label="Submit form"
       >
         Submit
       </button>

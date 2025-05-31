@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
-import { useLoaderData, useSubmit } from "@remix-run/react";
+import { useLoaderData, useSubmit, Link, useActionData } from "@remix-run/react";
 import { json, type LoaderFunctionArgs } from "@remix-run/node";
 
 import FormBuilder from "~/components/FormBuilder";
@@ -18,7 +18,7 @@ const predefinedTemplates = [
     name: "Contact Us",
     fields: [
       { id: uuidv4(), type: "text", label: "Name", required: true },
-      { id: uuidv4(), type: "text", label: "Email", required: true},
+      { id: uuidv4(), type: "text", label: "Email", required: true },
       { id: uuidv4(), type: "textarea", label: "Message", required: true, minLength: 10 },
     ],
   },
@@ -47,14 +47,17 @@ export async function action({ request }: LoaderFunctionArgs) {
 
   try {
     const form = JSON.parse(formString);
+    console.log("Builder: Action processed", { formId, form });
     return json({ formId, form });
   } catch (error) {
+    console.error("Builder: Action error", error);
     return json({ error: "Failed to parse form data" }, { status: 400 });
   }
 }
 
 export default function Builder() {
   const { templates: initialTemplates } = useLoaderData<LoaderData>();
+  const actionData = useActionData<{ error?: string }>();
   const submit = useSubmit();
   const { fields, saveForm, loadTemplate } = useFormStore();
   const [templates, setTemplates] = useState(initialTemplates);
@@ -73,6 +76,7 @@ export default function Builder() {
         if (existingForm) {
           loadTemplate(existingForm);
           setFormId(existingFormId);
+          console.log("Builder: Loaded existing form", { formId: existingFormId });
         }
       }
 
@@ -93,6 +97,13 @@ export default function Builder() {
     }
   }, [fields, saveForm]);
 
+  useEffect(() => {
+    if (actionData?.error) {
+      console.error("Builder: Action error response", actionData.error);
+      alert(`Failed to save form: ${actionData.error}`);
+    }
+  }, [actionData]);
+
   const handleSave = () => {
     if (typeof window !== "undefined") {
       if (fields.length === 0) {
@@ -104,7 +115,7 @@ export default function Builder() {
       const newFormId = formId || uuidv4();
       forms[newFormId] = { fields };
       localStorage.setItem("forms", JSON.stringify(forms));
-      console.log("Builder: Saved form", { formId: newFormId, form: forms[newFormId] });
+      console.log("Builder: Saved form to localStorage", { formId: newFormId, form: forms[newFormId] });
 
       submit(
         { form: JSON.stringify({ fields }), formId: newFormId },
@@ -140,12 +151,35 @@ export default function Builder() {
           <div className="space-x-2">
             <ThemeToggle />
             <button
+              onClick={handleSaveTemplate}
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              aria-label="Save as template"
+            >
+              Save Template
+            </button>
+            <button
               onClick={handleSave}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
               aria-label="Save and open form in new tab"
             >
               Save & Open
             </button>
+            {formId && (
+              <Link
+                to={`/responses/${formId}`}
+                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+                aria-label="View responses for current form"
+              >
+                View Current Responses
+              </Link>
+            )}
+            <Link
+              to="/responses"
+              className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+              aria-label="View all form responses"
+            >
+              View All Responses
+            </Link>
           </div>
         </div>
         <FormBuilder templates={templates} />
